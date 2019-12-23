@@ -1,0 +1,31 @@
+server: port: 9000
+spring:
+   kafka:
+     consumer:
+        bootstrap-servers: localhost:9092
+        group-id: group_id
+        auto-offset-reset: earliest
+        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+     producer:
+        bootstrap-servers: localhost:9092
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.apache.kafka.common.serialization.StringSerializer
+==============================================
+C:\kafka_2.12-0.10.2.1>.\bin\windows\zookeeper-server-start.bat    .\config\zookeeper.properties
+
+
+
+C:\kafka_2.12-0.10.2.1>.\bin\windows\kafka-server-start.bat    .\config\server.properties
+
+
+
+C:\kafka_2.12-0.10.2.1>.\bin\windows\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic java_in_use_topic --from-beginning
+
+
+C:\kafka_2.12-0.10.2.1>.\bin\windows\kafka-topics.bat  --create  --topic  <topicname>  --partitions  <no>  --replication-factor  <no>   --zookeeper  localhost:2181
+
+
+
+
+

@@ -1,0 +1,185 @@
+steps to deploy microservices on aws cloud:
+================================
+1) create a free account on aws.amazon.com/free
+2) sign in to the management console
+3) All services --> EC2 --> Launch instance -->launch instance
+4) select  Amazon Linux AMI 2018 SSD volume
+5) select t2.micro(free tier eligible) --> Review and Launch
+    --> Launch --> In pop-up, choose create a new key pair
+    --> provide key pair name as awskey -->Download key pair
+   -->Launch instance
+6)select  the  EC2 instance  created -->under Description
+    -->click on security group: launch-wizard-1
+
+7) click on Inbound tab --> Edit --> Add Rule  and enable the below ports
+     Type	             protocol            port           source
+     --------	            ----------------	--------------	    -----------------
+      SSH		TCP	    22	      custom
+      HTTP	               	TCP	    80	      Anywhere
+      HTTPS		TCP	    443             Anywhere
+      MYSQL	TCP	    3306          Anywhere
+      Custom TCP	TCP	    4002          Anywhere
+      Custom TCP	TCP	    4003	      Anywhere
+      Custom TCP	TCP	    4004          Anywhere
+      Custom TCP	TCP	    2222          Anywhere
+                                                                                                save
+
+8)  install  puttygen and putty from google to the local machine
+
+9)  start puttygen --> choose  SSH-1(RSA) --> load -->
+      change file type to: all files  --> choose filename awskey.pem
+       -->open --> save private key --> yes  -->enter the filename
+       awskey  --> save  --> close puttygen tool
+
+10)  start putty --> choose session --> copy ipv4 address of
+        ec2 instance and paste it as hostname -->port :22
+        -->choose SSH from left panel -->Auth --> Browse
+        -->select  awskey.ppk file -->open
+
+11)  login-as:  ec2-user
+
+12) install jdk8 on ec2 instance
+     $sudo yum install  java-1.8.0-openjdk-devel  -y
+
+13) $sudo  update-alternatives  --config   java
+           choose the number : 2
+
+14) check the selected java version
+        $  java  -version
+
+15) $cd /opt
+ 
+16) $ sudo  wget   http://apachemirror.wuchna.com/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+
+17) $ sudo tar  -xvzf  ./apache-maven-3.6.3-bin.tar.gz
+
+18) $ export  PATH=/opt/apache-maven-3.6.3/bin:$PATH
+
+19) $ mvn  -version
+
+20) In AWS console, select  RDS --> create database -->
+       mysql --> select MySql community --> version: 5.7.26
+       -->select  Free tier under templates -->db instance identifier: sathyatel
+     -->enter master username:root -->password: 12345678
+     -->In connectivity section -->additional connection settings
+     -->public  accessibility : yes
+     -->VPC Security Groups -->Choose existing -->click on drop down
+          and select launch-wizard-2  --> remaining values
+          make them as it as.
+     -->create database.
+
+
+
+21) open putty -->install mysql client
+        $ sudo  yum  install  mysql  -y
+
+22) install  git
+       $ sudo yum  install  git
+
+23) connect from EC2 instance to Database instance
+      $mysql  -u<<username>>  -h<<hostname of DB instance>>  -p
+        Enter password:
+    ex:
+      $mysql  -uroot  -hsathyatel.cjelcj1fgrar.us-west-2.rds.amazonaws.com  -p
+        Enter password: 12345678
+
+24) mysql> create  database customerdetails;
+       mysql> create  database plandetails;
+       mysql> create  database frienddetails;
+
+25) dump databases from local mysql server to remote
+       RDS instance of AWS
+      i) open command prompt and switch to mysql/bin directory
+     ii)mysqldump -hlocalhost  -P3306  -uroot -proot  customerdetails | mysql  -hsathyatel.cjelcj1fgrar.us-west-2.rds.amazonaws.com   -uroot  -p12345678  customerdetails
+    iii)dump the plandetails and frienddetails databases also.
+
+26) Goto services -->search for codecommit --> create repository
+       -->enter repository name: MicroRepo  --> create
+
+27) make a single zip for Microservices.zip for the following
+       applications.
+          Customer-Microservice
+          PlanDetails-Microservice
+          Friend-Microservice
+          eureka-registry
+
+28) click on MicroRepo  --> add file --> upload file
+        -->choose the Microservices.zip --> upload
+       --> author name  --> email -->commit the chanages
+
+29) Click on services --> Search  IAM -->groups -->create group
+       -->enter group name: developers -->next -->attach existing
+       policies directly -->search for AWSCodeCommitFullAccess
+      -->add it and create group
+
+30) click on users --> Add User --> enter username: sathya
+       -->check AWS Management Console Access --> next -->
+       create User --> Download csv -->close
+
+31) open putty 
+         $git clone  <<copy the code commit repository url>>
+           Username :
+           Password :
+
+32) $ cd MicroRepo
+       $ unzip Microservices.zip
+       $ cd Microservices
+       $ cd eureka-registry
+       $ mvn package
+       $ java -jar  target/*.jar  &
+       $ cd ..
+       $ cd PlanDetails-Microservice
+       $ mvn package
+       $ java  -jar  target/*.jar  &
+Note: check for eureka dashboard 
+         http://<<ip address of ec2 instance>>:2222
+
+33) create one more ec2 instance on AWS and install
+        all the required softwares through putty.
+
+34)  login to the new ec2 instance from putty.
+        $git clone  <<copy the codecommit repository url>>
+        $ cd MicroRepo
+        $ unzip Microservices.zip
+        $ cd Microservices
+        $ cd Friend-Microservice
+        $ mvn package
+        $ java -jar  target/*.jar  &
+
+35)  $cd ..
+        $cd Customer-Microservice
+        $mvn package
+        $java -jar  target/*.jar &
+    
+36) open a browser and enter the below url
+     http://<<ip address of second ec2 instance>>:4004/CustomerMicroservice/viewProfile/988588381
+
+
+============================================
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     
